@@ -1,0 +1,13 @@
+{
+  "name": "Jolenes_Reasonable_and_QOL_Pack",
+  "version_number": "1.0.0",
+  "website_url": "",
+  "description": "Thoughtful quality-of-life improvements for Valheim without making the game feel too easy, cheap, or unbalanced.",
+  "dependencies": [
+    "denikson-BepInExPack_Valheim-5.4.2351",
+    "TastyChickenLegs-TreesReborn-1.1.2",
+    "seneaL-SeneaL_UI-1.2.0",
+    "GemHunter1-HipWeapons-1.2.0",
+    "Pan_kapkan-DeathSoundMetalPipe-1.0.0"
+  ]
+}
