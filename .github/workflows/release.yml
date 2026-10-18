@@ -1,0 +1,54 @@
+name: Lint and release modpack
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Lint manifest and package
+        run: python3 scripts/validate.py
+      - name: Require tag to match manifest version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          expected="v$(python3 -c 'import json; print(json.load(open("manifest.json"))["version_number"])')"
+          test "$GITHUB_REF_NAME" = "$expected" || { echo "Tag must equal $expected"; exit 1; }
+      - name: Build ZIP
+        run: python3 scripts/build.py
+      - name: Validate ZIP structure
+        run: |
+          python3 - <<'PYCODE'
+          import glob, zipfile
+          files = glob.glob('dist/*.zip')
+          assert len(files) == 1
+          with zipfile.ZipFile(files[0]) as z:
+              assert {'manifest.json','README.md','icon.png','config/seneaL.valheim.ui.cfg'} <= set(z.namelist())
+              assert z.testzip() is None
+          PYCODE
+      - name: Upload CI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: valheim-modpack
+          path: dist/*.zip
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.zip --title "$GITHUB_REF_NAME" --notes-file CHANGELOG.md --verify-tag
