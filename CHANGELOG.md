@@ -1,4 +1,7 @@
 ## 1.0.1
+- Allow SeneaL UI automatic refueling, hover timers and coin wallets in server rules.
+- Enable two SeneaL UI key slots and allow them in server rules.
+- Enable six SeneaL UI action slots and allow them in server rules.
 - Upgrade TreesReborn to 1.1.7 and SeneaL UI to 1.2.1.
 - Add Grantapher ValheimPlus 10.3.0.
 - Automate kiln, smelter and blast furnace fuel/input and output to nearby chests.

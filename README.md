@@ -14,7 +14,7 @@ SlotLock is deliberately **not** separately included. SeneaL UI already provides
 
 ## Balancing and configuration
 
-**Vanilla main inventory size (32):** `config/seneaL.valheim.ui.cfg` sets `[Inventory] Slots = 32` and `[Server] MaxSlots = 32`, with rule enforcement on. Configs ship within the package's `config/` directory. Existing player configs may take precedence; the cap is authoritative only where SeneaL UI is installed on the server and its rules are enabled. Food, action, equipment, and key slots are separate features and should be reviewed in the UI's F7 settings if you want strictly vanilla inventory behavior.
+**Vanilla main inventory size (32):** `config/seneaL.valheim.ui.cfg` sets `[Inventory] Slots = 32` and `[Server] MaxSlots = 32`, with rule enforcement on. Configs ship within the package's `config/` directory. Existing player configs may take precedence; the cap is authoritative only where SeneaL UI is installed on the server and its rules are enabled. Six action slots are enabled below the hotbar, with a matching server limit. Food, action, equipment, and key slots are separate features and should be reviewed in the UI's F7 settings if you want strictly vanilla inventory behavior.
 
 **TreesReborn:** its respawn probability and workstation restrictions are configurable. This pack does not invent undocumented config names. Run the game once with TreesReborn, edit its actual generated file under `BepInEx/config`, then copy it into this repository's `config/` directory (preserving its exact filename) and rebuild. For a conservative feel, consider lowering the replant chance from 100%; verify each key in your installed version first.
 
