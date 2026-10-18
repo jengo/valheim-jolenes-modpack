@@ -32,14 +32,14 @@ git init
 git add .
 git commit -m "Initial modpack"
 git branch -M main
-git remote add origin git@github.com:YOUR_USER/YOUR_REPO.git
+git remote add origin git@github.com:jengo/valheim-jolenes-modpack.git
 git push -u origin main
 # To release:
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-Optional: update `website_url` to your repo's URL when created.
+Repository: [jengo/valheim-jolenes-modpack](https://github.com/jengo/valheim-jolenes-modpack).
 
 Mod binaries are **not** redistributed. Credits to the respective authors.
 

@@ -1,7 +1,7 @@
 {
   "name": "Jolenes_Reasonable_and_QOL_Pack",
   "version_number": "1.0.1",
-  "website_url": "",
+  "website_url": "https://github.com/jengo/valheim-jolenes-modpack",
   "description": "Thoughtful quality-of-life improvements for Valheim without making the game feel too easy, cheap, or unbalanced.",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2351",
