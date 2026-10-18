@@ -1,3 +1,7 @@
+## 1.0.4
+- Add Muindor DeathTweaks 1.1.0.
+- Keep all items and active food on death, disable skill loss, and prioritize server settings.
+
 ## 1.0.3
 - Increase the server crafting and building chest range limits to 100 meters.
 - Disallow showing locked recipes and reducing coin weight in server rules.

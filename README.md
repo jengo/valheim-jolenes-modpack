@@ -8,11 +8,14 @@ Thoughtful quality-of-life updates for Valheim without making the game feel too 
 - [TreesReborn](https://thunderstore.io/c/valheim/p/TastyChickenLegs/TreesReborn/) — configurable tree regrowth when stumps are removed.
 - [SeneaL UI](https://thunderstore.io/c/valheim/p/seneaL/SeneaL_UI/) — UI overhaul with built-in slot locking.
 - [HipWeapons](https://thunderstore.io/c/valheim/p/GemHunter1/HipWeapons/) — wear weapons at your hip.
+- [DeathTweaks](https://thunderstore.io/c/valheim/p/Muindor/DeathTweaks/) — keep items, active food, and skills on death.
 - [DeathSoundMetalPipe](https://thunderstore.io/c/valheim/p/Pan_kapkan/DeathSoundMetalPipe/) — humorous global death sound.
 
 SlotLock is deliberately **not** separately included. SeneaL UI already provides slot locking.
 
 ## Balancing and configuration
+
+**Easier deaths (v1.0.4):** `config/muindor.DeathTweaks.cfg` enables `KeepAllItems` and `KeepFoodLevels`, disables `ReduceSkills`, and enables server `ConfigPriority`. Install DeathTweaks on every player and on the server/host to apply shared rules. Players without the mod are unaffected. Existing profile configs may need updating. SeneaL UI extra-slot retention still needs an in-game compatibility check.
 
 **Vanilla main inventory size (32):** `config/seneaL.valheim.ui.cfg` sets `[Inventory] Slots = 32` and `[Server] MaxSlots = 32`, with rule enforcement on. Configs ship within the package's `config/` directory. Existing player configs may take precedence; the cap is authoritative only where SeneaL UI is installed on the server and its rules are enabled. Six action slots are enabled below the hotbar, with a matching server limit. Food, action, equipment, and key slots are separate features and should be reviewed in the UI's F7 settings if you want strictly vanilla inventory behavior.
 
@@ -22,7 +25,9 @@ Check that mod managers actually apply pack configs to the active profile (exist
 
 ## GitHub CI / publishing
 
-The GitHub Actions workflow validates the manifest and package, builds a ZIP on pull requests and pushes, then attaches a ZIP to a **GitHub Release** when a `vX.Y.Z` tag is pushed. It does **not** auto-upload to Thunderstore; publish the GitHub Release asset to Thunderstore manually. Tags must match `manifest.json` version.
+The GitHub Actions workflow validates the manifest and package and builds a ZIP on pull requests and pushes. A push to **main** creates a **GitHub Release** and version tag from `manifest.json` (for example, `v1.0.3`), attaching the package ZIP. Existing releases are left unchanged; bump the manifest version to publish another release. Pushing a matching `vX.Y.Z` tag also publishes a release if it does not exist. Pull requests and manual workflow runs only build artifacts. It does **not** auto-upload to Thunderstore; publish the GitHub Release asset to Thunderstore manually. Tags must match `manifest.json` version.
+
+The Actions artifact download (`valheim-modpack.zip`) is also ready to upload directly to Thunderstore. Both downloads contain `manifest.json`, `icon.png`, and `README.md` at the ZIP root. Older Actions artifacts wrap the package ZIP inside another ZIP; extract those downloads and upload the inner `Jolenes_Reasonable_and_QOL_Pack-*.zip` file instead. Do not upload GitHub's source-code ZIP.
 
 ```bash
 python3 scripts/validate.py
@@ -34,9 +39,7 @@ git commit -m "Initial modpack"
 git branch -M main
 git remote add origin git@github.com:jengo/valheim-jolenes-modpack.git
 git push -u origin main
-# To release:
-git tag v1.0.0
-git push origin v1.0.0
+# To release: update manifest.json and CHANGELOG.md, commit, and push main.
 ```
 
 Repository: [jengo/valheim-jolenes-modpack](https://github.com/jengo/valheim-jolenes-modpack).
