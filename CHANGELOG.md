@@ -1,4 +1,5 @@
 ## 1.0.1
+- Upgrade TreesReborn to 1.1.7 and SeneaL UI to 1.2.1.
 - Add Grantapher ValheimPlus 10.3.0.
 - Automate kiln, smelter and blast furnace fuel/input and output to nearby chests.
 - Refill torches and other fire sources from chests within 10 meters, consuming normal fuel (including resin); disable infinite fuel.
