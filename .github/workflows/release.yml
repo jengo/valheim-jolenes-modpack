@@ -13,6 +13,9 @@ permissions:
 jobs:
   package:
     runs-on: ubuntu-latest
+    concurrency:
+      group: modpack-release-${{ github.repository }}
+      cancel-in-progress: false
     permissions:
       contents: write
     steps:
@@ -40,15 +43,28 @@ jobs:
               assert {'manifest.json','README.md','icon.png','config/seneaL.valheim.ui.cfg'} <= set(z.namelist())
               assert z.testzip() is None
           PYCODE
+      - name: Prepare upload-ready CI artifact
+        run: |
+          python3 - <<'PYCODE'
+          import glob, zipfile
+          with zipfile.ZipFile(glob.glob('dist/*.zip')[0]) as z:
+              z.extractall('dist/artifact')
+          PYCODE
       - name: Upload CI artifact
         uses: actions/upload-artifact@v4
         with:
           name: valheim-modpack
-          path: dist/*.zip
+          path: dist/artifact/
+          if-no-files-found: error
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/*.zip --title "$GITHUB_REF_NAME" --notes-file CHANGELOG.md --verify-tag
+          tag="v$(python3 -c 'import json; print(json.load(open("manifest.json"))["version_number"])')"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "Release $tag already exists. Bump manifest.json to publish another release."
+          else
+            gh release create "$tag" dist/*.zip --target "$GITHUB_SHA" --title "$tag" --notes-file CHANGELOG.md
+          fi
