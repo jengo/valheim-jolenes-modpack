@@ -1,3 +1,8 @@
+## 1.0.3
+- Increase the server crafting and building chest range limits to 100 meters.
+- Disallow showing locked recipes and reducing coin weight in server rules.
+- Allow item highlights and backgrounds from other mods in SeneaL UI inventory slots.
+
 ## 1.0.2
 - Allow SeneaL UI automatic refueling, hover timers and coin wallets in server rules.
 - Enable two SeneaL UI key slots and allow them in server rules.
