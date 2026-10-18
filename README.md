@@ -43,5 +43,5 @@ Repository: [jengo/valheim-jolenes-modpack](https://github.com/jengo/valheim-jol
 
 Mod binaries are **not** redistributed. Credits to the respective authors.
 
-## ValheimPlus (v1.0.1)
+## ValheimPlus (v1.0.2)
 Uses the maintained Grantapher ValheimPlus fork. Automatic kiln/smelter/blast furnace chest handling and fire-source refueling from chests within 10 meters are enabled. Torches consume resin normally and refill from nearby chests; other fires also draw their normal fuel from nearby chests. No infinite fuel is enabled. All production rates, fuel costs, inventory capacity and combat settings stay vanilla. Kiln stops pulling wood when nearby coal reaches 100. ValheimPlus requires client/server installation; server enforces version and synchronizes config.

@@ -1,4 +1,4 @@
-## 1.0.1
+## 1.0.2
 - Allow SeneaL UI automatic refueling, hover timers and coin wallets in server rules.
 - Enable two SeneaL UI key slots and allow them in server rules.
 - Enable six SeneaL UI action slots and allow them in server rules.
