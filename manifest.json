@@ -5,8 +5,8 @@
   "description": "Thoughtful quality-of-life improvements for Valheim without making the game feel too easy, cheap, or unbalanced.",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2351",
-    "TastyChickenLegs-TreesReborn-1.1.7",
-    "seneaL-SeneaL_UI-1.2.1",
+    "TastyChickenLegs-TreesReborn-1.1.",
+    "seneaL-SeneaL_UI-1.2.3",
     "GemHunter1-HipWeapons-1.2.0",
     "Pan_kapkan-DeathSoundMetalPipe-1.0.0",
     "Grantapher-ValheimPlus_Grantapher_Temporary-10.3.0",
