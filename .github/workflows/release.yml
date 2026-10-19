@@ -70,6 +70,14 @@ jobs:
           else
             gh release create "$tag" dist/*.zip --target "$GITHUB_SHA" --title "$tag" --notes-file CHANGELOG.md
           fi
+      - name: Set up .NET for official Thunderstore CLI
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Install official Thunderstore CLI
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: dotnet tool install --global tcli --version 0.2.3
       - name: Publish to Thunderstore
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:

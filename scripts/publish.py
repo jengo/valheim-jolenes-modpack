@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Publish the built package using Thunderstore's usermedia/submission API."""
+"""Skip existing versions, then publish the unchanged built ZIP with official tcli."""
 import json
 import os
 from pathlib import Path
 import sys
+import subprocess
+import tempfile
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
@@ -46,42 +48,27 @@ def publish(token, namespace, categories):
         return
     if not token:
         raise RuntimeError("Set the THUNDERSTORE_API_TOKEN GitHub Actions secret.")
-    upload = api("usermedia/initiate-upload/", token, {
-        "filename": package.name, "file_size_bytes": package.stat().st_size,
-    })
-    uuid = upload["user_media"]["uuid"]
-    parts = []
-    try:
-        with package.open("rb") as source:
-            for part in upload["upload_urls"]:
-                source.seek(part["offset"])
-                data = source.read(part["length"])
-                if len(data) != part["length"]:
-                    raise RuntimeError("Upload part extends past package size.")
-                # Signed storage URLs authorize themselves; do not send the API token.
-                request = Request(part["url"], data=data, method="PUT")
-                try:
-                    with urlopen(request, timeout=180) as response:
-                        etag = response.headers["ETag"]
-                        if not etag:
-                            raise RuntimeError("Storage upload did not return an ETag.")
-                except (HTTPError, URLError):
-                    raise RuntimeError("Thunderstore storage upload failed.") from None
-                parts.append({"ETag": etag, "PartNumber": part["part_number"]})
-        api(f"usermedia/{uuid}/finish-upload/", token, {"parts": parts})
-    except Exception:
-        try:
-            api(f"usermedia/{uuid}/abort-upload/", token, {})
-        except Exception:
-            pass
-        raise
-    api("submission/submit/", token, {
-        "author_name": namespace,
-        "communities": ["valheim"],
-        "has_nsfw_content": False,
-        "upload_uuid": uuid,
-        "community_categories": {"valheim": categories},
-    })
+    # Only orchestration remains here: tcli owns all authenticated upload requests.
+    # JSON strings/arrays are valid TOML values and safely escape variable input.
+    with tempfile.TemporaryDirectory(prefix="thunderstore-") as directory:
+        config_path = Path(directory) / "thunderstore.toml"
+        config_path.write_text(
+            '[config]\nschemaVersion = "0.0.1"\n'
+            '[package]\n'
+            f'namespace = {json.dumps(namespace)}\n'
+            f'name = {json.dumps(name)}\n'
+            f'versionNumber = {json.dumps(version)}\n'
+            '[build]\noutdir = "dist"\n'
+            '[publish]\nrepository = "https://thunderstore.io"\ncommunities = ["valheim"]\n'
+            '[publish.categories]\n'
+            f'valheim = {json.dumps(categories)}\n'
+        )
+        env = os.environ.copy()
+        env["TCLI_AUTH_TOKEN"] = token
+        subprocess.run([
+            "tcli", "publish", "--config-path", str(config_path),
+            "--file", str(package),
+        ], cwd=ROOT, env=env, check=True)
     print(f"Published {namespace}-{name}-{version} to Thunderstore.")
 
 
@@ -90,6 +77,6 @@ if __name__ == "__main__":
         publish(os.environ.get("THUNDERSTORE_API_TOKEN", ""),
                 os.environ.get("THUNDERSTORE_NAMESPACE", "Jolene"),
                 [c.strip() for c in os.environ.get("THUNDERSTORE_CATEGORIES", "modpacks").split(",") if c.strip()])
-    except (RuntimeError, URLError, KeyError, ValueError, OSError) as exc:
+    except (RuntimeError, URLError, KeyError, ValueError, OSError, subprocess.CalledProcessError) as exc:
         # URLError text can contain network details; tokens and signed URLs stay private.
         sys.exit(str(exc) if isinstance(exc, RuntimeError) else "Thunderstore publishing failed; check API connectivity and response format.")
