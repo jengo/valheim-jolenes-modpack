@@ -33,6 +33,8 @@ jobs:
           test "$GITHUB_REF_NAME" = "$expected" || { echo "Tag must equal $expected"; exit 1; }
       - name: Build ZIP
         run: python3 scripts/build.py
+      - name: Test publishing integration without network access
+        run: python3 scripts/test_publish.py
       - name: Validate ZIP structure
         run: |
           python3 - <<'PYCODE'
@@ -68,3 +70,10 @@ jobs:
           else
             gh release create "$tag" dist/*.zip --target "$GITHUB_SHA" --title "$tag" --notes-file CHANGELOG.md
           fi
+      - name: Publish to Thunderstore
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          THUNDERSTORE_API_TOKEN: ${{ secrets.THUNDERSTORE_API_TOKEN }}
+          THUNDERSTORE_NAMESPACE: ${{ vars.THUNDERSTORE_NAMESPACE || 'Jolene' }}
+          THUNDERSTORE_CATEGORIES: ${{ vars.THUNDERSTORE_CATEGORIES || 'modpacks' }}
+        run: python3 scripts/publish.py
