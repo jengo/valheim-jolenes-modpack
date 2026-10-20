@@ -107,7 +107,7 @@ jobs:
         with:
           dotnet-version: '8.0.x'
       - name: Install official Thunderstore CLI
-        run: dotnet tool install --global tcli --version 0.2.3
+        run: dotnet tool install --global tcli --version 0.2.4
       - name: Publish to Thunderstore
         env:
           THUNDERSTORE_API_TOKEN: ${{ secrets.THUNDERSTORE_API_TOKEN }}
