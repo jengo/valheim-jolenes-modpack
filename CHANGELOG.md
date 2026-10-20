@@ -1,3 +1,6 @@
+## 1.0.9
+- Fix dependancy version
+
 ## 1.0.8
 - Added Seneal API for server side deployments
 
