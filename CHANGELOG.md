@@ -1,3 +1,6 @@
+## 1.0.8
+- Added Seneal API for server side deployments
+
 ## 1.0.4
 - Add Muindor DeathTweaks 1.1.0.
 - Keep all items and active food on death, disable skill loss, and prioritize server settings.
