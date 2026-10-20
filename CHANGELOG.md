@@ -1,3 +1,10 @@
+## 1.0.10
+- Make the player arrow on the minimap and world map follow the camera instead of the character.
+- Enable crafting and upgrading from nearby chests by default in SeneaL UI 1.2.3.
+- Set the client chest crafting range to 100 meters, matching the existing server cap, and explicitly allow it in server rules.
+- Enable SeneaL UI autosmelters and automatic refilling, building from chests within 100 meters, the coin wallet, and automatic ore detection, with matching server permissions.
+- Preserve the vanilla 32-slot main inventory cap, normal coin weight, recipe restrictions, and existing ValheimPlus automation settings.
+
 ## 1.0.9
 - Fix dependancy version
 
