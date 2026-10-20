@@ -45,9 +45,19 @@ class PublishingTests(unittest.TestCase):
         self.assertFalse(Path(cli.call_args.args[0][3]).exists())
 
     def test_missing_token_does_not_invoke_cli(self):
-        with patch.object(publish, 'api', side_effect=self.missing), patch.object(publish.subprocess, 'run') as run:
-            with self.assertRaisesRegex(RuntimeError, 'THUNDERSTORE_API_TOKEN'):
-                publish.publish('', 'Jolene', ['modpacks'])
+        with patch.object(publish, 'api') as api, patch.object(publish.subprocess, 'run') as run:
+            for token in ('', '   '):
+                with self.assertRaisesRegex(RuntimeError, 'THUNDERSTORE_API_TOKEN'):
+                    publish.publish(token, 'Jolene', ['modpacks'])
+        api.assert_not_called()
+        run.assert_not_called()
+
+    def test_forbidden_lookup_is_not_treated_as_missing_version(self):
+        def forbidden(path, token):
+            raise RuntimeError(f'Thunderstore {path}: HTTP 403')
+        with patch.object(publish, 'api', side_effect=forbidden), patch.object(publish.subprocess, 'run') as run:
+            with self.assertRaisesRegex(RuntimeError, 'before tcli ran'):
+                publish.publish('secret', 'Jolene', ['modpacks'])
         run.assert_not_called()
 
     def test_cli_failure_propagates(self):

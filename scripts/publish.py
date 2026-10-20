@@ -32,6 +32,8 @@ def api(path, token, payload=None):
 
 
 def publish(token, namespace, categories):
+    if not token.strip():
+        raise RuntimeError("Set the THUNDERSTORE_API_TOKEN GitHub Actions secret (repository Settings > Secrets and variables > Actions). No token was provided.")
     manifest = json.loads((ROOT / "manifest.json").read_text())
     name, version = manifest["name"], manifest["version_number"]
     package = ROOT / "dist" / f"{name}-{version}.zip"
@@ -41,13 +43,13 @@ def publish(token, namespace, categories):
     try:
         api(lookup, None)
     except RuntimeError as exc:
+        if str(exc) == f"Thunderstore {lookup}: HTTP 403":
+            raise RuntimeError("Thunderstore denied the version lookup (HTTP 403), before tcli ran. Check API access from the runner; this response does not establish whether the version exists.") from None
         if str(exc) != f"Thunderstore {lookup}: HTTP 404":
             raise
     else:
         print(f"{namespace}-{name}-{version} already exists; skipping upload.")
         return
-    if not token:
-        raise RuntimeError("Set the THUNDERSTORE_API_TOKEN GitHub Actions secret.")
     # Only orchestration remains here: tcli owns all authenticated upload requests.
     # JSON strings/arrays are valid TOML values and safely escape variable input.
     with tempfile.TemporaryDirectory(prefix="thunderstore-") as directory:
