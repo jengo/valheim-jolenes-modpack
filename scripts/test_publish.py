@@ -9,21 +9,6 @@ import publish
 
 
 class PublishingTests(unittest.TestCase):
-    def test_existing_version_does_not_upload(self):
-        with patch.object(publish, 'api', return_value={}), patch.object(publish.subprocess, 'run') as run:
-            publish.publish('secret', 'Jolene', ['modpacks'])
-        run.assert_not_called()
-
-    def test_api_failure_does_not_trigger_upload(self):
-        with patch.object(publish, 'api', side_effect=RuntimeError('HTTP 503')), patch.object(publish.subprocess, 'run') as run:
-            with self.assertRaises(RuntimeError):
-                publish.publish('secret', 'Jolene', ['modpacks'])
-        run.assert_not_called()
-
-    def missing(self, path, token):
-        self.assertIsNone(token)
-        raise RuntimeError(f'Thunderstore {path}: HTTP 404')
-
     def test_cli_receives_existing_zip_config_and_environment_token(self):
         def run(args, **kwargs):
             self.assertEqual(args[:3], ['tcli', 'publish', '--config-path'])
@@ -39,29 +24,31 @@ class PublishingTests(unittest.TestCase):
             self.assertEqual(kwargs['env']['TCLI_AUTH_TOKEN'], 'secret')
             self.assertNotIn('secret', ' '.join(args) + Path(args[3]).read_text())
             self.assertTrue(kwargs['check'])
-        with patch.object(publish, 'api', side_effect=self.missing), patch.object(publish.subprocess, 'run', side_effect=run) as cli:
+        with patch.object(publish.subprocess, 'run', side_effect=run) as cli:
             publish.publish('secret', 'Jolene', ['modpacks', 'qol'])
         cli.assert_called_once()
         self.assertFalse(Path(cli.call_args.args[0][3]).exists())
 
     def test_missing_token_does_not_invoke_cli(self):
-        with patch.object(publish, 'api') as api, patch.object(publish.subprocess, 'run') as run:
+        with patch.object(publish.subprocess, 'run') as run:
             for token in ('', '   '):
                 with self.assertRaisesRegex(RuntimeError, 'THUNDERSTORE_API_TOKEN'):
                     publish.publish(token, 'Jolene', ['modpacks'])
-        api.assert_not_called()
         run.assert_not_called()
 
-    def test_forbidden_lookup_is_not_treated_as_missing_version(self):
-        def forbidden(path, token):
-            raise RuntimeError(f'Thunderstore {path}: HTTP 403')
-        with patch.object(publish, 'api', side_effect=forbidden), patch.object(publish.subprocess, 'run') as run:
-            with self.assertRaisesRegex(RuntimeError, 'before tcli ran'):
+    def test_no_python_network_preflight(self):
+        with patch('socket.create_connection', side_effect=AssertionError('Python must not make network requests')), patch.object(publish.subprocess, 'run') as cli:
+            publish.publish('secret', 'Jolene', ['modpacks'])
+        cli.assert_called_once()
+
+    def test_missing_package_does_not_invoke_cli(self):
+        with patch.object(publish.Path, 'is_file', return_value=False), patch.object(publish.subprocess, 'run') as cli:
+            with self.assertRaisesRegex(RuntimeError, 'Build the package'):
                 publish.publish('secret', 'Jolene', ['modpacks'])
-        run.assert_not_called()
+        cli.assert_not_called()
 
     def test_cli_failure_propagates(self):
-        with patch.object(publish, 'api', side_effect=self.missing), patch.object(publish.subprocess, 'run', side_effect=subprocess.CalledProcessError(1, 'tcli')):
+        with patch.object(publish.subprocess, 'run', side_effect=subprocess.CalledProcessError(1, 'tcli')):
             with self.assertRaises(subprocess.CalledProcessError):
                 publish.publish('secret', 'Jolene', ['modpacks'])
 
