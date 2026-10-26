@@ -1,3 +1,6 @@
+## 1.0.11
+- Upgraded dependencies
+
 ## 1.0.10
 - Make the player arrow on the minimap and world map follow the camera instead of the character.
 - Enable crafting and upgrading from nearby chests by default in SeneaL UI 1.2.3.

@@ -73,18 +73,41 @@ def upgrade(manifest, fetch=None):
     return dict(manifest, dependencies=updated), changes
 
 
-def write_manifest(path, manifest):
-    """Replace atomically so a failed write cannot leave a partial manifest."""
-    temporary = None
+def write_release(files):
+    """Stage both files, detect concurrent edits, and roll back on write errors.
+
+    Each replacement is atomic; the pair is not crash-atomic across power loss.
+    files contains (path, original bytes or None, new text).
+    """
+    staged, replaced = [], []
     try:
-        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=path.parent, delete=False) as handle:
-            temporary = Path(handle.name)
-            json.dump(manifest, handle, indent=2, ensure_ascii=False)
-            handle.write('\n')
-        temporary.chmod(path.stat().st_mode & 0o777)
-        os.replace(temporary, path)
+        for path, original, text in files:
+            with tempfile.NamedTemporaryFile(mode='wb', dir=path.parent, delete=False) as handle:
+                temporary = Path(handle.name)
+                staged.append(temporary)
+                handle.write(text.encode('utf-8'))
+            temporary.chmod(path.stat().st_mode & 0o777 if original is not None else 0o644)
+        for path, original, _ in files:
+            current = path.read_bytes() if path.exists() else None
+            if current != original:
+                raise ValueError(f'{path} changed during API lookups; rerun to avoid overwriting edits')
+        for (path, original, _), temporary in zip(files, staged):
+            os.replace(temporary, path)
+            replaced.append((path, original))
+    except (OSError, ValueError):
+        for path, original in reversed(replaced):
+            if original is None:
+                path.unlink(missing_ok=True)
+            else:
+                with tempfile.NamedTemporaryFile(mode='wb', dir=path.parent, delete=False) as handle:
+                    rollback = Path(handle.name)
+                    staged.append(rollback)
+                    handle.write(original)
+                rollback.chmod(path.stat().st_mode & 0o777)
+                os.replace(rollback, path)
+        raise
     finally:
-        if temporary is not None:
+        for temporary in staged:
             temporary.unlink(missing_ok=True)
 
 
@@ -94,23 +117,45 @@ def main(argv=None):
     parser.add_argument('--manifest', type=Path, default=ROOT / 'manifest.json', help='Manifest to update (default: repository manifest.json)')
     args = parser.parse_args(argv)
     try:
-        original = args.manifest.read_text(encoding='utf-8')
+        original = args.manifest.read_bytes()
         manifest = json.loads(original)
+        changelog = args.manifest.parent / 'CHANGELOG.md'
+        old_changelog = changelog.read_bytes() if changelog.exists() else None
         if not isinstance(manifest, dict):
             raise ValueError('manifest must be a JSON object')
+        major, minor, _ = version_tuple(manifest.get('version_number'))
         updated, changes = upgrade(manifest)
         for package, before, after in changes:
             print(f"{package}: {before} -> {after}")
         if not changes:
-            print('No dependency upgrades available. Manifest unchanged.')
-        elif args.dry_run:
-            print(f"Dry run: {len(changes)} upgrade(s); manifest unchanged.")
+            print('No dependency upgrades available. Manifest and changelog unchanged.')
         else:
-            if args.manifest.read_text(encoding='utf-8') != original:
-                raise ValueError('manifest changed during API lookups; rerun to avoid overwriting edits')
-            write_manifest(args.manifest, updated)
-            print(f"Updated {len(changes)} dependency version(s) in {args.manifest}.")
-            print('Review mod compatibility and configs before building a new release.')
+            version = f'{major}.{minor + 1}.0'
+            updated['version_number'] = version
+            previous_notes = old_changelog.decode('utf-8') if old_changelog is not None else ''
+            if re.search(rf'^##\s+{re.escape(version)}\s*$', previous_notes, re.MULTILINE):
+                raise ValueError(f'CHANGELOG.md already contains version {version}; review manually')
+            entry = f'## {version}\n' + ''.join(
+                f'- Update {package} from {before} to {after}.\n'
+                for package, before, after in changes
+            )
+            # Keep an existing top-level title at the beginning of the file.
+            title = re.match(r'\A# [^\n]+\n(?:[ \t]*\n)*', previous_notes)
+            if title:
+                notes = title.group() + entry + '\n' + previous_notes[title.end():]
+            else:
+                notes = entry + ('\n' + previous_notes if previous_notes else '')
+            print(f"Modpack version: {manifest['version_number']} -> {version}")
+            if args.dry_run:
+                print(entry, end='')
+                print(f'Dry run: {len(changes)} upgrade(s); manifest and changelog unchanged.')
+            else:
+                write_release([
+                    (args.manifest, original, json.dumps(updated, indent=2, ensure_ascii=False) + '\n'),
+                    (changelog, old_changelog, notes),
+                ])
+                print(f'Updated {len(changes)} dependency version(s), modpack version, and {changelog}.')
+                print('Review mod compatibility and configs before building a new release.')
         return 0
     except (OSError, ValueError) as exc:
         print(f"Upgrade failed: {exc}", file=sys.stderr)
