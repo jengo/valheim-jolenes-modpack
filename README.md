@@ -58,3 +58,17 @@ Mod binaries are **not** redistributed. Credits to the respective authors.
 
 ## ValheimPlus (v1.0.2)
 Uses the maintained Grantapher ValheimPlus fork. Automatic kiln/smelter/blast furnace chest handling and fire-source refueling from chests within 10 meters are enabled. Torches consume resin normally and refill from nearby chests; other fires also draw their normal fuel from nearby chests. No infinite fuel is enabled. All production rates, fuel costs, inventory capacity and combat settings stay vanilla. Kiln stops pulling wood when nearby coal reaches 100. ValheimPlus requires client/server installation; server enforces version and synchronizes config.
+
+## Upgrade dependency versions
+
+Run `make upgrade` (or `python3 scripts/update_dependencies.py`) to check every dependency already listed in `manifest.json` against Thunderstore and update its version to the latest active release. The script uses Python 3's standard library; no extra packages or API token are needed.
+
+Preview changes without writing files:
+
+```bash
+python3 scripts/update_dependencies.py --dry-run
+```
+
+All lookups must succeed before the manifest is replaced. Deprecated packages, inactive releases, malformed responses, and network errors fail without a partial update. The updater preserves dependency order, never downgrades a pinned version, and changes only dependency versions. It does not add transitive dependencies, change configs, bump the modpack version, commit, or publish. Add or remove mods through the manifest; the script needs no mod-specific edits.
+
+Review the reported upgrades and each mod's compatibility/config changes, then update the modpack version and changelog before building a release. Run the offline updater tests with `python3 scripts/test_update_dependencies.py`.
