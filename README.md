@@ -58,3 +58,17 @@ Mod binaries are **not** redistributed. Credits to the respective authors.
 
 ## ValheimPlus (v1.0.2)
 Uses the maintained Grantapher ValheimPlus fork. Automatic kiln/smelter/blast furnace chest handling and fire-source refueling from chests within 10 meters are enabled. Torches consume resin normally and refill from nearby chests; other fires also draw their normal fuel from nearby chests. No infinite fuel is enabled. All production rates, fuel costs, inventory capacity and combat settings stay vanilla. Kiln stops pulling wood when nearby coal reaches 100. ValheimPlus requires client/server installation; server enforces version and synchronizes config.
+
+## Upgrade dependency versions
+
+Run `make upgrade` (or `python3 scripts/update_dependencies.py`) to check every dependency already listed in `manifest.json` against Thunderstore and update its version to the latest active release. The script uses Python 3's standard library; no extra packages or API token are needed.
+
+Preview changes without writing files:
+
+```bash
+python3 scripts/update_dependencies.py --dry-run
+```
+
+All lookups must succeed before the manifest is replaced. Deprecated packages, inactive releases, malformed responses, and network errors fail without a partial update. The updater preserves dependency order and never downgrades a pinned version. When upgrades are available, it increments the modpack minor version and resets the patch to zero (for example, `1.0.10` → `1.1.0`), then adds a matching section to `CHANGELOG.md` listing every dependency and its old and new version. Existing changelog entries are preserved; a missing changelog is created beside the manifest. If no dependencies change, neither file changes. Dry runs preview the version bump and changelog entry without writing either file. Both files are staged before replacement, with rollback on ordinary write errors; an abrupt process termination or power loss between replacements is not covered. It does not add transitive dependencies, change configs, commit, or publish. Add or remove mods through the manifest; the script needs no mod-specific edits.
+
+Review the reported upgrades, generated changelog entry, and each mod's compatibility/config changes before building a release. Run the offline updater tests with `python3 scripts/test_update_dependencies.py`.

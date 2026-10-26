@@ -6,11 +6,11 @@
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2351",
     "TastyChickenLegs-TreesReborn-1.1.8",
-    "seneaL-SeneaL_UI-1.2.3",
-    "seneaL-SeneaL_API-1.1.0",
+    "seneaL-SeneaL_UI-1.2.8",
+    "seneaL-SeneaL_API-1.2.0",
     "GemHunter1-HipWeapons-1.2.0",
     "Pan_kapkan-DeathSoundMetalPipe-1.0.0",
-    "Grantapher-ValheimPlus_Grantapher_Temporary-10.3.0",
+    "Grantapher-ValheimPlus_Grantapher_Temporary-10.4.0",
     "Muindor-DeathTweaks-1.1.0"
   ]
 }

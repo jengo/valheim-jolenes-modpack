@@ -1,3 +1,5 @@
+.PHONY: all build publish upgrade
+
 all: build
 
 build:
@@ -7,3 +9,5 @@ build:
 publish:
 	python scripts/publish.py
 
+upgrade:
+	python3 scripts/update_dependencies.py
